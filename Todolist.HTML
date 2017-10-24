@@ -1,0 +1,126 @@
+<html>
+<style>
+#checkbox
+{
+    border-radius: 25px;
+    border: 9px solid #ddd;
+}
+#delete,button
+{
+	 border-radius: 25px;
+}
+#first
+{
+	margin-top: 40px;
+	box-shadow: 10px 10px 5px #888888;
+	height: 50%;
+	width:50%;
+}
+</style>
+<head>
+ <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/backbone.js/1.1.2/backbone-min.js"></script>
+</head>
+<script type="text/template" id="t1">
+	<input type = "text" id="text"/>
+	<button id="ADD">ADD</button>
+	<ul id="ulist">
+	</ul>
+</script>
+<script type="text/template" id="t2">
+ <li style = "list-style-type:none;"><input type = "checkbox"/ id="checkbox"><span style="padding-right:50px" data-index =<%-index%>><%-value%></span><button id="delete" data-index =<%-btnindex%>>x</button></li><br>
+</script>
+<body>
+<center>
+<div id="first">
+<h1><centre>TO DO LIST</centre></h1>
+<div id="main">	
+
+</div>
+</div>
+</center>
+</body>
+<script>
+var ListModel = Backbone.Model.extend({
+	defaults:{
+		list:[]
+	}
+});
+
+var ListView = Backbone.View.extend({
+	el: "#main",
+	events:{
+    "click #ADD": "onClick",
+    "dblclick span":"ondblClick",
+    "click #delete":"onDelete",
+    "input span":"keyUp",
+    "click #checkbox":"strikeThrough"
+	},
+	initialize: function()
+	{
+		//this.listenTo(this.model,'change',this.render());
+	},
+	render: function(){
+	var template = $("#t1").html();
+	var templateFunction = _.template(template);
+	var str = templateFunction();
+	this.$el.html(str);
+	var len = this.model.get('list').length;
+	for(var i = 0; i < len;i++){
+    var text = this.model.get("list")[i];
+    var listItemView = new ListItemView();
+    var val = listItemView.render(text,i);
+    this.$el.find("#ulist").append(val);
+	}
+	},
+	onClick: function(){
+    var val = this.el.firstElementChild.value;
+    var mylist = this.model.get("list");
+    mylist.push(val);
+    this.model.set("list",mylist);
+    this.render();
+},
+    ondblClick: function(e){
+       e.currentTarget.setAttribute("contenteditable","true");
+    },
+    onDelete:function(e){
+       var i =e.currentTarget.dataset.index;
+       this.model.get("list").splice(i,1);
+       this.render();
+    },
+    keyUp:function(e){
+        console.log(e.currentTarget);
+       var i =e.currentTarget.dataset.index;
+       this.model.get("list")[i] =e.currentTarget.innerHTML; 
+       // this.render();
+    },
+    strikeThrough:function(e){
+    if(e.currentTarget.checked == true)
+    {
+    e.currentTarget.nextElementSibling.style.textDecoration = "line-through";
+    }
+    else
+    {
+     e.currentTarget.nextElementSibling.style.textDecoration = "none";
+    }
+    }
+});
+var ListItemView = Backbone.View.extend({
+	tagName: "li",
+	initialize: function(){
+	},
+	render: function(inputValue,li_index){
+	var template = $("#t2").html();
+	var templateFunction = _.template(template);
+	var str = templateFunction({value: inputValue,index: li_index,btnindex:li_index});
+	this.el = str;
+	return this.el;
+	}
+});
+
+    var listView = new ListView({model:new ListModel()});
+    listView.render();
+
+</script>
+</html>
